@@ -53,64 +53,37 @@
         <link rel="icon" href="">
         <link rel="icon" type="image/png" href="">
 
-        <script id="all-standards-template" type="text/template">
+        <script id="lens-template" type="text/template">
+            <ul class="nav nav-pills" role="tablist">
+                <% for (var i = 0; i < lenses.length; i++) { %>
+                    <li class="nav-item">
+                        <a class="nav-link <% if (activeLens.name === lenses[i].name) { %>active<% } %>"
+                            href="#<%=lenses[i].href%>" data-name="<%=lenses[i].name%>"
+                            role="tab"><%=lenses[i].name%></a>
+                    </li>
+                <% } %>
+            </ul>
+            <hr />
+        </script>
+
+        <script id="standards-template" type="text/template">
             <% for (var i = 0; i < standards.length; i++) { %>
-                <div><a data-id="<%=standards[i].id%>" class="competency-detail" href="#"><%=standards[i].Competency%></a></div>
+                <% if (!activeLens.filter || standards[i].Type === activeLens.filter) { %>
+                    <div><a data-id="<%=standards[i].id%>" class="competency-detail" href="#"><%=standards[i].Competency%></a></div>
+                <% } %>
             <% } %>
         </script>
-        <script id="core-standards-template" type="text/template">
-            <% for (var i = 0; i < standards.length; i++) { %>
-                <div class="row">
-                    <div class="col">
-                        <div>Icon</div>
-                        <div><a data-id="<%=standards[i].id%>" class="competency-detail" href="#"><%=standards[i].Competency%></a></div>
-                    </div>
-                    <div class="col">
-                        <h5>I will be able to:</h5>
-                        <ul>
-                            <% for (var j = 1; j <= 6; j++) { %>
-                                <% var value = standards[i]['End' + j]; %>
-                                <% if (value.length > 0) { %>
-                                    <li><%=value%></li>
-                                <% } %>
-                            <% } %>
-                        </ul>
-                    </div>
-                    <div class="col">
-                        <h5>I will develop:</h5>
-                        <ul>
-                            <% for (var j = 1; j <= 6; j++) { %>
-                                <% var value = standards[i]['Dev' + j]; %>
-                                <% if (value.length > 0) { %>
-                                    <li><%=value%></li>
-                                <% } %>
-                            <% } %>
-                        </ul>
-                    </div>
-                    <div class="col">
-                        <h5>It should take me:</h5>
-                        <ul>
-                            <% for (var j = 1; j <= 6; j++) { %>
-                                <% var value = standards[i]['Time' + j]; %>
-                                <% if (value.length > 0) { %>
-                                    <li><%=value%></li>
-                                <% } %>
-                            <% } %>
-                        </ul>
-                    </div>
-                </div>
-            <% } %>
-        </script>
+
         <script id="detail-template" type="text/template">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
-            <h3><%=standard.Competency%></h3>
+            <h3><%=activeStandard.Competency%></h3>
             <div class="row">
                 <div class="col-8">
-                    <p class="small"><%=standard.Source%>, <%=standard.Type%></p>
-                    <p class="lead"><%=standard.Description_Lede%></p>
-                    <p><%=standard.Description_Body%></p>
+                    <p class="small"><%=activeStandard.Source%>, <%=activeStandard.Type%></p>
+                    <p class="lead"><%=activeStandard.Description_Lede%></p>
+                    <p><%=activeStandard.Description_Body%></p>
                 </div>
                 <div class="col text-center"><strong>Icon</strong></div>
             </div>
@@ -121,72 +94,19 @@
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <p>
-                        <h1>
-                            CTL Framework for Digital Humanities Competencies
-                        </h1>
-                    </p>
+                    <h1>
+                        CTL Framework for Digital Humanities Competencies
+                    </h1>
                     <p class="lead">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et varius magna, ac fermentum nisl. Cras lacinia nulla augue, elementum facilisis enim mattis at. 
                     </p>
                 </div>
             </div>
             <div class="row">
-                <div class="col">
-                    <!-- Nav tabs -->
-                    <ul class="nav nav-tabs nav-justified" role="tablist">
-                      <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#all" role="tab">All</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#technical" role="tab">Technical</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#administrative" role="tab">Administrative</a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#intellectual" role="tab">Intellectual</a>
-                      </li>
-                    </ul>
-
-                    <!-- Tab panes -->
-                    <div class="tab-content">
-                      <div class="tab-pane active" id="all" role="tabpanel">
-                        <p>
-                            <h2 class="text-center">All Competencies</h2>
-                        </p>
-                        <p class="lead text-center">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et varius magna, ac fermentum nisl. <br>
-                            Cras lacinia nulla augue, elementum facilisis enim mattis at. 
-                        </p>
-                        <div class="standards-container all"></div>
-                      </div>
-                      <div class="tab-pane" id="technical" role="tabpanel">
-                        <p><h2 class="text-center">Technical Competencies</h2></p>
-                        <p class="lead text-center">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et varius magna, ac fermentum nisl. <br>
-                            Cras lacinia nulla augue, elementum facilisis enim mattis at. 
-                        </p>
-                        <div class="standards-container technical"></div>
-                      </div>
-                      <div class="tab-pane" id="administrative" role="tabpanel">
-                        <p><h2 class="text-center">Administrative Competencies</h2></p>
-                        <p class="lead text-center">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et varius magna, ac fermentum nisl. <br>
-                            Cras lacinia nulla augue, elementum facilisis enim mattis at. 
-                        </p>
-                        <div class="standards-container administrative"></div>
-                      </div>
-                      <div class="tab-pane" id="intellectual" role="tabpanel">
-                        <p><h2 class="text-center">Intellectual Competencies</h2></p>
-                        <p class="lead text-center">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et varius magna, ac fermentum nisl. <br>
-                            Cras lacinia nulla augue, elementum facilisis enim mattis at. 
-                        </p>
-                        <div class="standards-container intellectual"></div>
-                      </div>
-                    </div>
-                </div>
+                <div class="col lens-container"></div>
+            </div>
+            <div class="row">
+                <div class="col standards-container"></div>
             </div>
         </div>
 
@@ -214,9 +134,10 @@
                 var view = new StandardView({
                     el: jQuery('.container'),
                     url: 'media/csv/standards.csv?callback=?',
-                    allTemplate: jQuery('#all-standards-template'),
-                    coreTemplate: jQuery('#core-standards-template'),
-                    detailTemplate: jQuery('#detail-template')
+                    allDescription: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean et varius magna, ac fermentum nisl. Cras lacinia nulla augue, elementum facilisis enim mattis at.',
+                    lensTemplate: jQuery('#lens-template'),
+                    standardsTemplate: jQuery('#standards-template'),
+                    detailTemplate: jQuery('#detail-template'),
                 });
             });
         </script>
