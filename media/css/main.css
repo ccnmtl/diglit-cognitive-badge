@@ -1,11 +1,12 @@
+body {font-family: 'Open Sans', sans-serif;}
+
 .nav { margin-bottom: 1.5em; }
 
 h1 { margin-top: .75em; }
 
-.level { margin-top: 1.5em; }
+.level { margin-top: 1em; margin-bottom: 1em; }
 
-.badge-framework
-{
+.badge-framework {
     font-size: 2.75em;
     display: inline-block;
     text-align: center;
@@ -14,28 +15,40 @@ h1 { margin-top: .75em; }
     padding: .5em 0 .5em 0;
 }
 
+.badge-framework-inline {
+    font-size: 1.5em;
+    display: inline-block;
+    text-align: center;
+    font-weight: normal;
+    padding: .5em;
+}
+
+.modal-body h3 {
+    display: inline;
+    margin-left: 20px;
+    font-weight: bold;
+}
+
+.badge-summary .badge {
+    margin-bottom: 1.25rem;
+}
+
 .bronze { color: #b87333; }
 .badge-bronze { background-color: #b87333; }
 
-.silver { color: #c0c0c0; }
-.badge-silver { background-color: #c0c0c0; }
+.silver { color: #c3cbd0; }
+.badge-silver { background-color: #c3cbd0; }
 
 .gold { color: #c5b358; }
 .badge-gold { background-color: #c5b358; }
 
-.card-columns { column-count: 1; }
-
-@media all and (min-width: 576px) and (max-width: 767px)
-{
-    .card-columns { column-count: 2; }
+.grid-item {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 20px;
 }
 
-@media all and (min-width: 768px) and (max-width: 991px)
-{
-    .card-columns { column-count: 3; }
-}
-
-@media all and (min-width: 992px)
-{
-    .card-columns { column-count: 4; }
+.card-title a {
+    text-decoration: none;
+    color: #292b2c; 
 }
