@@ -22,6 +22,9 @@ var LensList = Backbone.Collection.extend({
     byName: function(name) {
         return this.findWhere({name: name});
     },
+    byHref: function(href) {
+        return this.findWhere({href: href});
+    }
 });
 
 var Standard = Backbone.Model.extend(
@@ -58,7 +61,7 @@ var StandardList = Backbone.Collection.extend({
         return a;
     },
     byId: function(id) {
-        return this.findWhere({id: id});
+        return this.findWhere({id: parseInt(id, 10)});
     },
     byTypeAndMastery: function(type, mastery) {
         var ctx = {};
@@ -84,7 +87,7 @@ var State = Backbone.Model.extend({
     initialize: function(description) {
         var allLens = new Lens({
             name: 'All Competencies',
-            href: 'all_competencies',
+            href: 'all',
             description: description
         });
 
@@ -92,30 +95,6 @@ var State = Backbone.Model.extend({
         this.set('lenses', lenses);
 
         this.set('standards', new StandardList());
-    },
-    initStandards: function(results) {
-        for (var i = 0; i < results.data.length; i++) {
-            if (!this.validStandard(results.data[i])) {
-                continue;
-            }
-
-            var std = new Standard(results.data[i]);
-            std.set('id', i);
-            this.get('standards').add(std);
-
-            var lensName = results.data[i][Standard.FIELD_LENS_NAME];
-            if (lensName.length > 0 && !this.get('lenses').byName(lensName)) {
-                var lens = new Lens({
-                    name: lensName,
-                    filter: lensName,
-                    href: this.slugify(lensName),
-                    description:
-                        results.data[i][Standard.FIELD_LENS_DESCRIPTION]
-                });
-                this.get('lenses').add(lens);
-            }
-        }
-        this.set('activeLens', this.get('lenses').at(0));
     },
     context: function() {
         var filter = this.get('activeLens').get('filter');
@@ -153,7 +132,7 @@ var StandardView = Backbone.View.extend({
     },
     initialize: function(options) {
         _.bindAll(this, 'render', 'onLens', 'onShowDetail', 'onHideDetail',
-            'addHistory', 'popHistory');
+            'addHistory', 'popHistory', 'setState', 'onParseComplete');
 
         this.state = new State(options.allDescription);
         this.state.on('change:activeStandard', this.render);
@@ -166,18 +145,78 @@ var StandardView = Backbone.View.extend({
         this.standardsTemplate = _.template(options.standardsTemplate.html());
         this.detailTemplate = _.template(options.detailTemplate.html());
 
+        jQuery(window).on('popstate', this.popHistory);
+
         var self = this;
         Papa.parse(options.url, {
             download: true,
             header: true,
             complete: function(results) {
-                self.state.initStandards(results);
+                self.onParseComplete(results);
             }
         });
     },
     addHistory: function(lens, standard) {
+        if (window.history.pushState) {
+            var state = {'lens': lens.get('href')};
+            var url = '#/' + state.lens + '/';
+            if (standard) {
+                state.standard = standard.get('id');
+                url += state.standard + '/';
+            }
+            window.history.pushState(state, '', url);
+        }
     },
-    popHistory: function() {
+    popHistory: function(evt) {
+        var state = evt.originalEvent.state;
+        if (state) {
+            this.setState(state.lens, state.standard);
+        }
+    },
+    onParseComplete: function(results) {
+        for (var i = 0; i < results.data.length; i++) {
+            if (!this.state.validStandard(results.data[i])) {
+                continue;
+            }
+
+            var std = new Standard(results.data[i]);
+            std.set('id', i + 1);
+            this.state.get('standards').add(std);
+
+            var lensName = results.data[i][Standard.FIELD_LENS_NAME];
+            if (lensName.length > 0 &&
+                    !this.state.get('lenses').byName(lensName)) {
+                var lens = new Lens({
+                    name: lensName,
+                    filter: lensName,
+                    href: this.state.slugify(lensName),
+                    description:
+                        results.data[i][Standard.FIELD_LENS_DESCRIPTION]
+                });
+                this.state.get('lenses').add(lens);
+            }
+        }
+
+        // setState based on location.hash
+        // url structure is /lens/<name>/std/<id>/
+        var parts = window.location.hash.split('/');
+        if (parts.length < 2) {
+            this.setState('all');
+        } else if (parts.length == 3) {
+            this.setState(parts[1]);
+        } else if (parts.length == 4) {
+            this.setState(parts[1], parts[2]);
+        }
+    },
+    setState: function(lensHref, standardId) {
+        var lens = this.state.get('lenses').byHref(lensHref);
+
+        if (standardId) {
+            var std = this.state.get('standards').byId(standardId);
+            this.state.set({'activeStandard': std, 'activeLens': lens});
+        } else {
+            this.state.set({'activeStandard': undefined, 'activeLens': lens});
+        }
     },
     render: function() {
         var ctx = this.state.context();
@@ -196,24 +235,33 @@ var StandardView = Backbone.View.extend({
         });
 
         if (ctx.activeStandard) {
-            var $modal = jQuery('#competency-detail-modal');
-            $modal.find('.modal-body').html(this.detailTemplate(ctx));
-            $modal.modal('show');
+            this.$modal = jQuery('#competency-detail-modal');
+            this.$modal.find('.modal-body').html(this.detailTemplate(ctx));
+            this.$modal.modal('show');
+        } else if (this.$modal) {
+            this.$modal.forceClose = true;
+            this.$modal.modal('hide');
         }
     },
     onLens: function(evt) {
         evt.preventDefault();
         var lensName = jQuery(evt.currentTarget).data('name');
         var lens = this.state.get('lenses').byName(lensName);
+        this.addHistory(lens);
         this.state.set('activeLens', lens);
     },
     onShowDetail: function(evt) {
         evt.preventDefault();
         var id = jQuery(evt.currentTarget).data('id');
         var std = this.state.get('standards').byId(id);
+        this.addHistory(this.state.get('activeLens'), std);
         this.state.set('activeStandard', std);
     },
     onHideDetail: function(evt) {
+        if (!this.$modal.forceClose) {
+            this.addHistory(this.state.get('activeLens'));
+        }
+        delete this.$modal;
         this.state.set('activeStandard', undefined);
     }
 });
