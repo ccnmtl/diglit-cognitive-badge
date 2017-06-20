@@ -66,7 +66,7 @@ Repositories for other frameworks:
 
 8.  Go to the “index.html” file in your repository and edit the Title (line 203) and descriptions (line 206) to suit your context. Describe your change and create a new branch for this commit and start a pull request.
 
-    a.  Note: All other descriptions (for lenses, pop up box copy, etc.) are determined by your “standards.csv” file. To make further changes to description, you must make changes in your Google Sheet and upload a new “standards.csv” file with your changes. We discourage editing in the standards.csv file directly.
+    a.  Note: All other descriptions (for lenses, pop up box copy, etc.) are determined by your “standards.csv” file. To make further changes to the description, you must make changes in your Google Sheet and upload a new “standards.csv” file with your changes. We discourage editing in the standards.csv file directly.
 
 9.  Review your changes to “standards.csv” and “index.html” and merge your pull requests with the master branch. (**[How do I merge a pull request?](https://help.github.com/articles/merging-a-pull-request/))**
 
